@@ -155,7 +155,7 @@ const AffiliateAccount = () => {
                   ? user.firstName.charAt(0).toUpperCase() + user.firstName.slice(1).toLowerCase()
                   : "User"}!
               </h1>
-              <p className="text-gray-600">Let's get started with your journey</p>
+              <p className="text-gray-600">Let's get started with your journey.</p>
             </div>
           </div>
         </div>
