@@ -25,7 +25,7 @@ export default function CourseVideos() {
   const fetchCourses = async () => {
     try {
       console.log("[CourseVideos] Fetching courses with token:", token ? "Token present" : "No token");
-      const res = await axios.get("https://full-project-dv97.onrender.com/api/courses", {
+      const res = await axios.get("https://guru-rohan2.onrender.com/api/courses", {
         headers: { Authorization: `Bearer ${token}` },
         withCredentials: true,
       });
@@ -44,7 +44,7 @@ export default function CourseVideos() {
     try {
       console.log(`[CourseVideos] Refreshing course for slug: ${slug}`);
       const res = await axios.get(
-        `https://full-project-dv97.onrender.com/api/courses/slug/${slug}`,
+        `https://guru-rohan2.onrender.com/api/courses/slug/${slug}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       console.log("[CourseVideos] Refreshed course data:", {
@@ -78,7 +78,7 @@ export default function CourseVideos() {
     try {
       console.log("[CourseVideos] Adding video:", { courseId: selectedCourse._id, title, url, freePreview });
       const res = await axios.post(
-        `https://full-project-dv97.onrender.com/api/courses/${selectedCourse._id}/videos`,
+        `https://guru-rohan2.onrender.com/api/courses/${selectedCourse._id}/videos`,
         { title, url, freePreview },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -95,7 +95,7 @@ export default function CourseVideos() {
     try {
       console.log(`[CourseVideos] Deleting video: ${videoId} from course: ${selectedCourse._id}`);
       const res = await axios.delete(
-        `https://full-project-dv97.onrender.com/api/courses/${selectedCourse._id}/videos/${videoId}`,
+        `https://guru-rohan2.onrender.com/api/courses/${selectedCourse._id}/videos/${videoId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       console.log("[CourseVideos] Video deleted successfully:", res.data);
@@ -118,7 +118,7 @@ export default function CourseVideos() {
     try {
       console.log("[CourseVideos] Updating video:", { videoId, title: editVideoTitle, url: editVideoUrl, freePreview: editVideoFree });
       const res = await axios.put(
-        `https://full-project-dv97.onrender.com/api/courses/${selectedCourse._id}/videos/${videoId}`,
+        `https://guru-rohan2.onrender.com/api/courses/${selectedCourse._id}/videos/${videoId}`,
         {
           title: editVideoTitle,
           url: editVideoUrl,
@@ -148,7 +148,7 @@ export default function CourseVideos() {
     try {
       console.log("[CourseVideos] Saving course edits:", { id: selectedCourse._id, name: editName, slug: editSlug });
       const res = await axios.put(
-        `https://full-project-dv97.onrender.com/api/courses/${selectedCourse._id}`,
+        `https://guru-rohan2.onrender.com/api/courses/${selectedCourse._id}`,
         { name: editName, slug: editSlug, title: editName },
         { headers: { Authorization: `Bearer ${token}` } }
       );

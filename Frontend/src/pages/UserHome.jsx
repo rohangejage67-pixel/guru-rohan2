@@ -23,7 +23,7 @@ function UserHome() {
 
       try {
         // ✅ Correct port 5001
-        const userResponse = await fetch('https://full-project-dv97.onrender.com/api/courses/enrolled', {
+        const userResponse = await fetch('https://guru-rohan2.onrender.com/api/courses/enrolled', {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -42,7 +42,7 @@ function UserHome() {
         });
 
         // ✅ Correct port 5001
-        const coursesResponse = await fetch('https://full-project-dv97.onrender.com/api/courses/all');
+        const coursesResponse = await fetch('https://guru-rohan2.onrender.com/api/courses/all');
         const allCourses = await coursesResponse.json();
         if (!coursesResponse.ok) {
           throw new Error(allCourses.message || 'Failed to fetch courses');
@@ -128,7 +128,7 @@ function UserHome() {
             </p>
             <p className="text-sm text-gray-600">
               <span className="text-orange-500">
-                {`https://full-project-dv97.onrender.com/all-courses?affiliateId=${user.affiliateId}`}
+                {`https://guru-rohan2.onrender.com/all-courses?affiliateId=${user.affiliateId}`}
               </span>
             </p>
           </div>
