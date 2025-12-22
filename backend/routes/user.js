@@ -1,15 +1,19 @@
 // backend/routes/user.js
 const express = require("express");
 const router = express.Router();
-const bcrypt = require("bcryptjs"); 
+const bcrypt = require("bcryptjs");
 const {
   protect,
   checkEnrolledCourses,
-} = require("../middleware/authMiddleware"); 
+} = require("../middleware/authMiddleware");
 const User = require("../models/User");
 const Course = require("../models/Course");
 const Purchase = require("../models/Purchase");
-const { calculateCommissionStats } = require('../controllers/commissionController');
+const {
+  calculateCommissionStats,
+  addManualCommission,
+} = require("../controllers/commissionController");
+
 
 // ✅ Get videos of a purchased course (User only)
 router.get("/my-courses/:id/videos", protect, async (req, res) => {
@@ -94,9 +98,8 @@ router.get("/referrals", protect, checkEnrolledCourses, async (req, res) => {
   }
 });
 
-
-// change in user 
-// ✅ GET /api/user/referral/metrics — fetch referral metrics including total sales 
+// change in user
+// ✅ GET /api/user/referral/metrics — fetch referral metrics including total sales
 // router.get(
 //   "/referral/metrics",
 //   protect,
@@ -162,7 +165,8 @@ router.get(
         last30DaysEarnings: commissionEarnings.last30DaysEarnings,
         allTimeEarnings: commissionEarnings.allTimeEarnings,
         // Account balance ab dynamic allTime se calculate ho raha hai
-        accountBalance: commissionEarnings.allTimeEarnings - (user.commissionPaid || 0),
+        accountBalance:
+          commissionEarnings.allTimeEarnings - (user.commissionPaid || 0),
         commissionPaid: user.commissionPaid || 0,
         totalReferrals: referrals.length,
         status: user.isActive ? "active" : "pending",
@@ -291,25 +295,38 @@ router.put("/change-password", protect, async (req, res) => {
 
     // Validation
     if (!currentPassword || !newPassword || !confirmPassword) {
-      return res.status(400).json({ success: false, message: 'All fields are required' });
+      return res
+        .status(400)
+        .json({ success: false, message: "All fields are required" });
     }
     if (newPassword !== confirmPassword) {
-      return res.status(400).json({ success: false, message: 'New passwords do not match' });
+      return res
+        .status(400)
+        .json({ success: false, message: "New passwords do not match" });
     }
     if (newPassword.length < 8) {
-      return res.status(400).json({ success: false, message: 'New password must be at least 8 characters' });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "New password must be at least 8 characters",
+        });
     }
 
     // User find karo (full user with password)
-    const user = await User.findById(userId).select('+password'); // +password to include hashed password
+    const user = await User.findById(userId).select("+password"); // +password to include hashed password
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     // Current password verify karo
     const isMatch = await bcrypt.compare(currentPassword, user.password);
     if (!isMatch) {
-      return res.status(400).json({ success: false, message: 'Current password is incorrect' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Current password is incorrect" });
     }
 
     // New password hash karo aur update
@@ -318,12 +335,18 @@ router.put("/change-password", protect, async (req, res) => {
     await user.save();
 
     // Log success (optional)
-    console.log('✅ [user.js] Password changed for user:', { userId, timestamp: new Date().toISOString() });
+    console.log("✅ [user.js] Password changed for user:", {
+      userId,
+      timestamp: new Date().toISOString(),
+    });
 
-    res.json({ success: true, message: 'Password changed successfully' });
+    res.json({ success: true, message: "Password changed successfully" });
   } catch (error) {
-    console.error('❌ [user.js] Change Password Error:', { message: error.message, timestamp: new Date().toISOString() });
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error("❌ [user.js] Change Password Error:", {
+      message: error.message,
+      timestamp: new Date().toISOString(),
+    });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
@@ -333,5 +356,9 @@ router.get("/profile", protect, checkEnrolledCourses, async (req, res) => {
   if (!user) return res.status(404).json({ message: "User not found" });
   res.json(user);
 });
+
+// NEW: Manual commission adjustment route
+router.post("/manual-commission", protect, addManualCommission);
+
 
 module.exports = router;

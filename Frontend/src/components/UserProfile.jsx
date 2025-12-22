@@ -244,14 +244,14 @@ const UserProfile = () => {
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 mt-4">{user?.firstName} {user?.lastName}</h2>
                 <p className="text-gray-600 text-sm">{user?.email}</p>
-                {commissionStats && (
+                {/* {commissionStats && (
                   <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mt-2 ${commissionStats.status === 'active'
                     ? 'bg-green-100 text-green-800'
                     : 'bg-yellow-100 text-yellow-800'
                     }`}>
                     {commissionStats.status === 'active' ? 'Active' : 'Pending'}
                   </span>
-                )}
+                )} */}
               </div>
 
               {/* Navigation Tabs */}
@@ -270,7 +270,7 @@ const UserProfile = () => {
                     Personal Information
                   </div>
                 </button>
-                <button
+                {/* <button
                   onClick={() => setActiveTab('commission')}
                   className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 ${activeTab === 'commission'
                     ? 'bg-blue-50 text-blue-600 border border-blue-200'
@@ -283,7 +283,7 @@ const UserProfile = () => {
                     </svg>
                     Commission Stats
                   </div>
-                </button>
+                </button> */}
                 <button
                   onClick={() => setActiveTab('security')}
                   className={`w-full text-left px-4 py-3 rounded-xl transition-all duration-200 ${activeTab === 'security'
@@ -362,7 +362,7 @@ const UserProfile = () => {
               )}
 
               {/* Commission Tab Content */}
-              {activeTab === 'commission' && commissionStats && (
+              {/* {activeTab === 'commission' && commissionStats && (
                 <div>
                   <h3 className="text-2xl font-bold text-gray-900 mb-6">Commission Statistics</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -370,7 +370,7 @@ const UserProfile = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-blue-600 text-sm font-medium">Total Commissions</p>
-                          <p className="text-3xl font-bold text-gray-900 mt-2">${commissionStats.allTimeEarnings || 0}</p> {/* ← Yeh change: allTimeEarnings */}
+                          <p className="text-3xl font-bold text-gray-900 mt-2">${commissionStats.allTimeEarnings || 0}</p> 
                         </div>
                         <div className="bg-blue-500 p-3 rounded-lg">
                           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -384,7 +384,7 @@ const UserProfile = () => {
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="text-green-600 text-sm font-medium">Pending Commissions</p>
-                          <p className="text-3xl font-bold text-gray-900 mt-2">${commissionStats.accountBalance || 0}</p> {/* ← Yeh change: accountBalance */}
+                          <p className="text-3xl font-bold text-gray-900 mt-2">${commissionStats.accountBalance || 0}</p> 
                         </div>
                         <div className="bg-green-500 p-3 rounded-lg">
                           <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -395,7 +395,7 @@ const UserProfile = () => {
                     </div>
                   </div>
                 </div>
-              )}
+              )} */}
 
               {/* Security Tab Content */}
               {activeTab === 'security' && (

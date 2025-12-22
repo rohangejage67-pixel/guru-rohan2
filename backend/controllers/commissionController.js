@@ -6,7 +6,7 @@ exports.calculateCommissionStats = async (userId) => {
     const todayStart = new Date();
     todayStart.setHours(0, 0, 0, 0);
 
-    // Last 7 days start (7 days ago 00:00:00 → last 7 days + today partial)
+    // Last 7 days start
     const last7DaysStart = new Date(todayStart);
     last7DaysStart.setDate(last7DaysStart.getDate() - 7);
 
@@ -15,22 +15,18 @@ exports.calculateCommissionStats = async (userId) => {
     last30DaysStart.setDate(last30DaysStart.getDate() - 30);
 
     const [todayAgg, last7Agg, last30Agg, allTimeAgg] = await Promise.all([
-      // Today's earnings
       Commission.aggregate([
         { $match: { user: userId, purchaseDate: { $gte: todayStart } } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
       ]),
-      // Last 7 days
       Commission.aggregate([
         { $match: { user: userId, purchaseDate: { $gte: last7DaysStart } } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
       ]),
-      // Last 30 days
       Commission.aggregate([
         { $match: { user: userId, purchaseDate: { $gte: last30DaysStart } } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
       ]),
-      // All time
       Commission.aggregate([
         { $match: { user: userId } },
         { $group: { _id: null, total: { $sum: '$amount' } } }
@@ -51,5 +47,41 @@ exports.calculateCommissionStats = async (userId) => {
       last30DaysEarnings: 0,
       allTimeEarnings: 0
     };
+  }
+};
+
+exports.addManualCommission = async (req, res) => {
+  try {
+    const { userId, amount, date } = req.body;
+
+    if (!userId || !amount || !date) {
+      return res.status(400).json({ message: 'userId, amount, date required' });
+    }
+
+    // Optional: Admin check - agar strict admin only chahiye to uncomment kar do
+    // if (req.user.role !== 'admin') {
+    //   return res.status(403).json({ message: 'Admin only' });
+    // }
+
+    const newCommission = new Commission({
+      user: userId,
+      amount: Number(amount),
+      purchaseDate: new Date(date),
+      course: null,
+      referredUser: null,
+      createdAt: new Date(),
+    });
+
+    await newCommission.save();
+
+    res.json({
+      success: true,
+      message: 'Manual commission added successfully',
+      addedAmount: amount,
+      affectedDate: date,
+    });
+  } catch (err) {
+    console.error('Error adding manual commission:', err);
+    res.status(500).json({ message: 'Server error' });
   }
 };
