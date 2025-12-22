@@ -9,6 +9,7 @@ const {
 const User = require("../models/User");
 const Course = require("../models/Course");
 const Purchase = require("../models/Purchase");
+const { calculateCommissionStats } = require('../controllers/commissionController');
 
 // ✅ Get videos of a purchased course (User only)
 router.get("/my-courses/:id/videos", protect, async (req, res) => {
@@ -93,6 +94,45 @@ router.get("/referrals", protect, checkEnrolledCourses, async (req, res) => {
   }
 });
 
+
+// change in user 
+// ✅ GET /api/user/referral/metrics — fetch referral metrics including total sales 
+// router.get(
+//   "/referral/metrics",
+//   protect,
+//   checkEnrolledCourses,
+//   async (req, res) => {
+//     try {
+//       const user = await User.findById(req.user._id);
+//       if (!user) {
+//         return res.status(404).json({ message: "❌ User not found" });
+//       }
+
+//       const referrals = await User.find({ referredBy: user._id }).select("_id");
+//       const totalSales = await Purchase.countDocuments({
+//         user: { $in: referrals.map((r) => r._id) },
+//       });
+
+//       res.json({
+//         success: true,
+//         totalSales, // Number of sales from referrals
+//         todayEarnings: 0,
+//         last7DaysEarnings: 0,
+//         last30DaysEarnings: 0,
+//         allTimeEarnings: user.affiliateEarnings || 0,
+//         accountBalance: user.affiliateEarnings - (user.commissionPaid || 0),
+//         totalReferrals: referrals.length,
+//         commissionPaid: user.commissionPaid || 0,
+//         status: user.isActive ? "active" : "pending",
+//         isKycComplete: user.kycDetails?.isKycComplete || false,
+//       });
+//     } catch (err) {
+//       console.error("❌ Error fetching referral metrics:", err);
+//       res.status(500).json({ message: "❌ Failed to fetch referral metrics" });
+//     }
+//   }
+// );
+
 // ✅ GET /api/user/referral/metrics — fetch referral metrics including total sales
 router.get(
   "/referral/metrics",
@@ -105,22 +145,28 @@ router.get(
         return res.status(404).json({ message: "❌ User not found" });
       }
 
+      // Existing: Referrals aur total sales
       const referrals = await User.find({ referredBy: user._id }).select("_id");
       const totalSales = await Purchase.countDocuments({
         user: { $in: referrals.map((r) => r._id) },
       });
 
+      // NEW: Commission model se actual earnings calculate karo
+      const commissionEarnings = await calculateCommissionStats(req.user._id);
+
       res.json({
         success: true,
-        totalSales, // Number of sales from referrals
-        todayEarnings: 0,
-        last7DaysEarnings: 0,
-        last30DaysEarnings: 0,
-        allTimeEarnings: user.affiliateEarnings || 0,
-        accountBalance: user.affiliateEarnings - (user.commissionPaid || 0),
-        totalReferrals: referrals.length,
+        totalSales,
+        todayEarnings: commissionEarnings.todayEarnings,
+        last7DaysEarnings: commissionEarnings.last7DaysEarnings,
+        last30DaysEarnings: commissionEarnings.last30DaysEarnings,
+        allTimeEarnings: commissionEarnings.allTimeEarnings,
+        // Account balance ab dynamic allTime se calculate ho raha hai
+        accountBalance: commissionEarnings.allTimeEarnings - (user.commissionPaid || 0),
         commissionPaid: user.commissionPaid || 0,
+        totalReferrals: referrals.length,
         status: user.isActive ? "active" : "pending",
+        // Note: Yahan kycDetails use kiya gaya hai, baaki routes mein kyc hai → consistency ke liye check kar lena
         isKycComplete: user.kycDetails?.isKycComplete || false,
       });
     } catch (err) {
@@ -129,6 +175,7 @@ router.get(
     }
   }
 );
+
 // ✅ POST /api/user/account-info — set payout info only once
 router.post(
   "/account-info",

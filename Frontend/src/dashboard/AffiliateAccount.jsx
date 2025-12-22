@@ -82,7 +82,7 @@ const AffiliateAccount = () => {
 
 
   const copyToClipboard = () => {
-    if (!referralLink) { 
+    if (!referralLink) {
       alert("No referral link available! Please wait for data to load.");
       return;
     }
@@ -204,7 +204,7 @@ const AffiliateAccount = () => {
 
             <CommissionCard
               title="Commission Paid"
-              amount={commissionStats.allTimeEarnings || 0}
+              amount={commissionStats.commissionPaid || 0}
               color="green"
               icon={<FontAwesomeIcon icon={faInr} className="h-6 w-6" />}
             />
