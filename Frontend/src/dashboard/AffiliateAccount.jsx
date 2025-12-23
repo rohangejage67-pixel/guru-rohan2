@@ -204,7 +204,7 @@ const AffiliateAccount = () => {
 
             <CommissionCard
               title="Commission Paid"
-              amount={commissionStats.commissionPaid || 0}
+              amount={commissionStats.allTimeEarnings || 0}
               color="green"
               icon={<FontAwesomeIcon icon={faInr} className="h-6 w-6" />}
             />
