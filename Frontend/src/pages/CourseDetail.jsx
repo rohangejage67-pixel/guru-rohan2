@@ -1,6 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axios";
+
+const getYouTubeEmbedUrl = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+};
 
 const CourseDetail = () => {
   const { slug } = useParams();
@@ -11,12 +18,11 @@ const CourseDetail = () => {
   useEffect(() => {
     const fetchCourse = async () => {
       try {
-        // ⚡ Updated URL to match backend
-        const res = await axios.get(`https://guru-rohan2.onrender.com/api/courses/slug/${slug}`);
+        const res = await api.get(`/courses/slug/${slug}`);
             console.log("Course Response:", res.data); 
             console.log("Course data:", res.data);
         setCourse(res.data);
-        if (res.data.videos && res.data.videos.length > 0) {
+        if (Array.isArray(res.data.videos) && res.data.videos.length > 0) {
           setSelectedVideo(res.data.videos[0]);
         }
       } catch (err) {
@@ -42,12 +48,23 @@ const CourseDetail = () => {
       {selectedVideo && (
         <div className="mb-4">
           <h2 className="text-xl font-semibold mb-2">{selectedVideo.title}</h2>
-          <video
-            key={selectedVideo.url}
-            src={selectedVideo.url}
-            controls
-            className="w-full rounded-lg"
-          />
+          {getYouTubeEmbedUrl(selectedVideo.url) ? (
+            <iframe
+              className="w-full aspect-video rounded-lg"
+              src={getYouTubeEmbedUrl(selectedVideo.url)}
+              title={selectedVideo.title}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            ></iframe>
+          ) : (
+            <video
+              key={selectedVideo.url}
+              src={selectedVideo.url}
+              controls
+              className="w-full rounded-lg"
+            />
+          )}
           {selectedVideo.description && <p className="mt-2">{selectedVideo.description}</p>}
         </div>
       )}
@@ -56,7 +73,7 @@ const CourseDetail = () => {
       <div>
         <h3 className="text-lg font-semibold mb-2">Lessons</h3>
         <ul>
-          {course.videos.map((video, index) => (
+          {Array.isArray(course.videos) && course.videos.map((video, index) => (
             <li
               key={index}
               className={`p-2 cursor-pointer hover:bg-gray-200 rounded ${selectedVideo?.url === video.url ? 'bg-gray-300' : ''}`}

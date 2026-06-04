@@ -4,7 +4,7 @@ import axios from "axios";
 
 import { toast } from "react-toastify";
 const instance = axios.create({
-  baseURL: "https://guru-rohan2.onrender.com/api",
+  baseURL: import.meta.env.VITE_API_BASE_URL || "https://guru-rohan2.onrender.com/api",
   timeout: 60000,
   headers: {
     "Content-Type": "application/json",

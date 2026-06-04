@@ -2,6 +2,13 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import instance from "../api/axios";
 
+const getYouTubeEmbedUrl = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+};
+
 export default function CoursePlayer() {
   const { id } = useParams(); // courseId
   const [course, setCourse] = useState(null);
@@ -54,7 +61,7 @@ export default function CoursePlayer() {
       <div className="w-1/4 border-r p-4">
         <h2 className="font-bold text-lg">{course.title}</h2>
         <ul>
-          {course.videos.map((v, idx) => (
+          {Array.isArray(course.videos) && course.videos.map((v, idx) => (
             <li
               key={idx}
               onClick={() => setSelectedVideo(v)}
@@ -71,7 +78,20 @@ export default function CoursePlayer() {
       {/* Right side - video player */}
       <div className="w-3/4 p-4">
         <h3 className="text-xl mb-2">{selectedVideo?.title}</h3>
-        {videoUrl && <video src={videoUrl} controls style={{ width: "100%" }} />}
+        {videoUrl && (
+          getYouTubeEmbedUrl(videoUrl) ? (
+            <iframe
+              className="w-full aspect-video rounded-lg"
+              src={getYouTubeEmbedUrl(videoUrl)}
+              title={selectedVideo?.title || "Video"}
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              allowFullScreen
+            ></iframe>
+          ) : (
+            <video src={videoUrl} controls style={{ width: "100%" }} className="rounded-lg" />
+          )
+        )}
       </div>
     </div>
   );

@@ -13,7 +13,7 @@ function ProductPro() {
         const res = await api.get("/courses");
         // Assuming "Marketing Mastery" is the first course or filter by slug/name
         const selectedCourse =
-          res.data.find((c) => c.slug === "pro") || res.data[0];
+          res.data.find((c) => c.slug === "pro" || c.slug === "leadsgurukul-pro") || res.data[0];
         setCourse(selectedCourse);
       } catch (err) {
         console.error("Error fetching course:", err);

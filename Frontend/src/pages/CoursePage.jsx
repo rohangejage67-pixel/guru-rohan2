@@ -6,6 +6,13 @@ import { Button } from "../components/ui/button";
 import { StarIcon, ClockIcon, UserIcon, PlayCircleIcon } from "@heroicons/react/24/solid";
 import { AuthContext } from "../context/AuthContext";
 
+const getYouTubeEmbedUrl = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? `https://www.youtube.com/embed/${match[2]}` : null;
+};
+
 function CoursePage() {
   const { user } = useContext(AuthContext);
   const { slug } = useParams();
@@ -121,7 +128,7 @@ function CoursePage() {
 
       <div className="bg-white rounded-2xl shadow-lg p-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Course Content</h2>
-        {course.hasPurchased && course.videos && course.videos.length > 0 ? (
+        {course.hasPurchased && Array.isArray(course.videos) && course.videos.length > 0 ? (
           <Accordion type="single" collapsible className="space-y-3">
             {course.videos.map((video, index) => {
               // console.log("[CoursePage] Rendering video:", {
@@ -130,6 +137,7 @@ function CoursePage() {
               //   freePreview: video.freePreview,
               //   hasPurchased: course.hasPurchased,
               // });
+              const youtubeEmbedUrl = getYouTubeEmbedUrl(video.url);
               return (
                 <AccordionItem
                   key={index}
@@ -156,12 +164,23 @@ function CoursePage() {
                   <AccordionContent className="p-6 bg-white">
                     {video.url ? (
                       <div className="relative aspect-video rounded-lg overflow-hidden shadow-lg">
-                        <video
-                          controls
-                          src={video.url}
-                          className="w-full h-full rounded-lg"
-                          onError={(e) => console.error(`[CoursePage] Video load error for ${video.title}:`, e.message)}
-                        />
+                        {youtubeEmbedUrl ? (
+                          <iframe
+                            className="w-full h-full rounded-lg"
+                            src={youtubeEmbedUrl}
+                            title={video.title}
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                          ></iframe>
+                        ) : (
+                          <video
+                            controls
+                            src={video.url}
+                            className="w-full h-full rounded-lg"
+                            onError={(e) => console.error(`[CoursePage] Video load error for ${video.title}:`, e.message)}
+                          />
+                        )}
                       </div>
                     ) : (
                       <p className="text-red-500 text-center">
@@ -204,7 +223,7 @@ function CoursePage() {
           <div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">What You'll Learn</h3>
             <ul className="list-disc list-inside text-gray-600 space-y-2">
-              {course.whatYouLearn?.length > 0 ? (
+              {Array.isArray(course.whatYouLearn) && course.whatYouLearn.length > 0 ? (
                 course.whatYouLearn.map((outcome, index) => (
                   <li key={index}>{outcome}</li>
                 ))
@@ -216,7 +235,7 @@ function CoursePage() {
           <div>
             <h3 className="text-xl font-semibold text-gray-900 mb-2">Requirements</h3>
             <ul className="list-disc list-inside text-gray-600 space-y-2">
-              {course.prerequisites?.length > 0 ? (
+              {Array.isArray(course.prerequisites) && course.prerequisites.length > 0 ? (
                 course.prerequisites.map((req, index) => (
                   <li key={index}>{req}</li>
                 ))

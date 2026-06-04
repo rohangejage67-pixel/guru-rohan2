@@ -12,7 +12,7 @@ function ProductLite() {
       try {
         const res = await api.get("/courses");
         const selectedCourse =
-          res.data.find((c) => c.slug === "lite") || res.data[0];
+          res.data.find((c) => c.slug === "lite" || c.slug === "leadsgurukul-lite") || res.data[0];
         setCourse(selectedCourse);
       } catch (err) {
         console.error("Error fetching course:", err);

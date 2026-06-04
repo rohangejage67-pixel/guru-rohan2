@@ -11,7 +11,7 @@ function ProductSupreme() {
       try {
         const res = await api.get("/courses");
         const selectedCourse =
-          res.data.find((c) => c.slug === "supreme") || res.data[0];
+          res.data.find((c) => c.slug === "supreme" || c.slug === "leadsgurukul-supreme") || res.data[0];
         setCourse(selectedCourse);
       } catch (err) {
         console.error("Error fetching course:", err);

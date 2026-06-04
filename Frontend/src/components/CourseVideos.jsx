@@ -1,6 +1,6 @@
 //Frontend/src/components/CourseVideos.jsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../api/axios";
 
 export default function CourseVideos() {
   const [courses, setCourses] = useState([]);
@@ -24,11 +24,8 @@ export default function CourseVideos() {
   // Fetch all courses
   const fetchCourses = async () => {
     try {
-      console.log("[CourseVideos] Fetching courses with token:", token ? "Token present" : "No token");
-      const res = await axios.get("https://guru-rohan2.onrender.com/api/courses", {
-        headers: { Authorization: `Bearer ${token}` },
-        withCredentials: true,
-      });
+      console.log("[CourseVideos] Fetching courses");
+      const res = await api.get("/courses");
       console.log("[CourseVideos] Courses fetched:", {
         count: res.data.length,
         courses: res.data.map((c) => ({ id: c._id, name: c.name, slug: c.slug })),
@@ -43,10 +40,7 @@ export default function CourseVideos() {
   const refreshSelectedCourse = async (slug) => {
     try {
       console.log(`[CourseVideos] Refreshing course for slug: ${slug}`);
-      const res = await axios.get(
-        `https://guru-rohan2.onrender.com/api/courses/slug/${slug}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await api.get(`/courses/slug/${slug}`);
       console.log("[CourseVideos] Refreshed course data:", {
         id: res.data._id,
         name: res.data.name,
@@ -77,10 +71,9 @@ export default function CourseVideos() {
 
     try {
       console.log("[CourseVideos] Adding video:", { courseId: selectedCourse._id, title, url, freePreview });
-      const res = await axios.post(
-        `https://guru-rohan2.onrender.com/api/courses/${selectedCourse._id}/videos`,
-        { title, url, freePreview },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.post(
+        `/courses/${selectedCourse._id}/videos`,
+        { title, url, freePreview }
       );
       console.log("[CourseVideos] Video added successfully:", res.data);
       await refreshSelectedCourse(selectedCourse.slug);
@@ -94,9 +87,8 @@ export default function CourseVideos() {
   const handleDeleteVideo = async (videoId) => {
     try {
       console.log(`[CourseVideos] Deleting video: ${videoId} from course: ${selectedCourse._id}`);
-      const res = await axios.delete(
-        `https://guru-rohan2.onrender.com/api/courses/${selectedCourse._id}/videos/${videoId}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.delete(
+        `/courses/${selectedCourse._id}/videos/${videoId}`
       );
       console.log("[CourseVideos] Video deleted successfully:", res.data);
       await refreshSelectedCourse(selectedCourse.slug);
@@ -117,14 +109,13 @@ export default function CourseVideos() {
   const handleUpdateVideo = async (videoId) => {
     try {
       console.log("[CourseVideos] Updating video:", { videoId, title: editVideoTitle, url: editVideoUrl, freePreview: editVideoFree });
-      const res = await axios.put(
-        `https://guru-rohan2.onrender.com/api/courses/${selectedCourse._id}/videos/${videoId}`,
+      const res = await api.put(
+        `/courses/${selectedCourse._id}/videos/${videoId}`,
         {
           title: editVideoTitle,
           url: editVideoUrl,
           freePreview: editVideoFree,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
+        }
       );
       console.log("[CourseVideos] Video updated successfully:", res.data);
       await refreshSelectedCourse(selectedCourse.slug);
@@ -147,10 +138,9 @@ export default function CourseVideos() {
   const handleSaveEdit = async () => {
     try {
       console.log("[CourseVideos] Saving course edits:", { id: selectedCourse._id, name: editName, slug: editSlug });
-      const res = await axios.put(
-        `https://guru-rohan2.onrender.com/api/courses/${selectedCourse._id}`,
-        { name: editName, slug: editSlug, title: editName },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const res = await api.put(
+        `/courses/${selectedCourse._id}`,
+        { name: editName, slug: editSlug, title: editName }
       );
       console.log("[CourseVideos] Course updated successfully:", res.data);
       setEditMode(false);

@@ -1,4 +1,8 @@
 require("dotenv").config();
+const dns = require("dns");
+if (dns.setDefaultResultOrder) {
+  dns.setDefaultResultOrder("ipv4first");
+}
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -38,24 +42,30 @@ requiredEnvVars.forEach((varName) => {
 const app = express();
 
 // ✅ Middlewares
+
+// CORS must be registered first so rate limit / error responses include CORS headers
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
+
 app.use(helmet()); 
 app.use(morgan("combined"));
+
+// Rate limiter with bypass for local development IP addresses
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 1000, // Safe default limit
+  skip: (req) => {
+    const ip = req.ip || req.connection?.remoteAddress || "";
+    return ip === "::1" || ip === "127.0.0.1" || ip === "::ffff:127.0.0.1" || process.env.NODE_ENV !== "production";
+  },
   message: {
     success: false,
     message: "Too many requests, please try again later.",
   },
 });
 app.use("/api/", limiter);
-
-
-// ✅ FINAL CORS FIX - localhost + Vercel + mobile sab chalega forever
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
 
 app.use(express.json());
 
@@ -178,25 +188,44 @@ app.get("/api/check-google", (req, res) => {
   });
 });
 
-// ✅ Connect MongoDB
+// ✅ Connect MongoDB with automatic local fallback
 const mongoURI = process.env.MONGO_URI;
 const dbName = "E-COMMERCE"; // Your DB name
-const fullMongoURI = `${mongoURI}${dbName}?retryWrites=true&w=majority`;
+const localMongoURI = `mongodb://127.0.0.1:27017/${dbName}`;
+let fullMongoURI = localMongoURI;
 
-mongoose
-  .connect(fullMongoURI)
-  .then(async () => {
-    console.log(`✅ MongoDB connected to database: ${dbName}`);
+if (mongoURI && mongoURI.startsWith("mongodb")) {
+  const baseUri = mongoURI.endsWith("/") ? mongoURI : `${mongoURI}/`;
+  fullMongoURI = `${baseUri}${dbName}?retryWrites=true&w=majority`;
+}
 
-    // ✅ Sync referral indexes once on startup
-    const Referral = require("./models/Referral");
-    await Referral.syncIndexes();
-    console.log("✅ Referral indexes synced");
-  })
-  .catch((err) => {
-    console.error("❌ MongoDB connection error:", err);
-    process.exit(1); // Exit if connection fails
-  });
+const connectWithRetry = (uri, isFallback = false) => {
+  const sanitizedUri = uri.replace(/\/\/([^:]+):([^@]+)@/, "//***:***@");
+  console.log(`📡 Connecting to MongoDB at: ${sanitizedUri}`);
+  
+  mongoose
+    .connect(uri)
+    .then(async () => {
+      console.log(`✅ MongoDB connected successfully to database: ${dbName} (${isFallback ? "Local Fallback" : "Primary"})`);
+
+      // ✅ Sync referral indexes once on startup
+      const Referral = require("./models/Referral");
+      await Referral.syncIndexes();
+      console.log("✅ Referral indexes synced");
+    })
+    .catch((err) => {
+      console.error(`❌ MongoDB connection error (${isFallback ? "Local Fallback" : "Primary"}):`, err.message);
+      if (!isFallback && uri !== localMongoURI) {
+        console.log(`⚠️ Primary connection failed. Falling back to local MongoDB at: ${localMongoURI}`);
+        connectWithRetry(localMongoURI, true);
+      } else {
+        console.error("💀 All MongoDB connection attempts failed. Exiting.");
+        process.exit(1); // Exit if fallback fails too
+      }
+    });
+};
+
+connectWithRetry(fullMongoURI);
 
 // ✅ Error handling middleware
 app.use((err, req, res, next) => {

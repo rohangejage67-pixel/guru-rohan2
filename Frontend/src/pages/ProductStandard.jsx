@@ -14,7 +14,7 @@ function ProductStandard() {
       try {
         const res = await api.get("/courses");
         const selectedCourse =
-          res.data.find((c) => c.slug === "standard") || res.data[0];
+          res.data.find((c) => c.slug === "standard" || c.slug === "leadsgurukul-standard") || res.data[0];
         setCourse(selectedCourse);
       } catch (err) {
         console.error("Error fetching course:", err);
